@@ -13,6 +13,7 @@
   "exports": {
     ".": "./build/index.js",
     "./queue_provider": "./build/providers/queue_provider.js",
+    "./commands/*": "./build/commands/*.js",
     "./commands": "./build/commands/main.js",
     "./services/main": "./build/services/queue.js",
     "./types": "./build/src/types/main.js"
@@ -22,9 +23,10 @@
     "clean": "del-cli build",
     "compile": "npm run clean && tsc",
     "copy:templates": "copyfiles \"stubs/**/*.stub\" build",
+    "index:commands": "adonis-kit index build/commands",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "postcompile": "npm run copy:templates",
+    "postcompile": "npm run copy:templates && npm run index:commands",
     "prepublishOnly": "npm run build",
     "quick:test": "node --enable-source-maps --import=@poppinss/ts-exec bin/test.ts",
     "test": "c8 npm run quick:test",
