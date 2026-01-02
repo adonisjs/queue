@@ -1,0 +1,29 @@
+{{{
+  exports({ to: app.configPath('queue.ts') })
+}}}
+import env from '#start/env'
+import { defineConfig, drivers } from '@adonisjs/queue'
+
+export default defineConfig({
+  default: env.get('QUEUE_DRIVER', '{{driver}}'),
+
+  adapters: {
+{{#if driver === 'redis'}}
+    redis: drivers.redis({
+      connectionName: 'main',
+    }),
+{{#elif driver === 'database'}}
+    database: drivers.database({
+      connectionName: 'primary',
+    }),
+{{/if}}
+    sync: drivers.sync(),
+  },
+
+  worker: {
+    concurrency: 5,
+    idleDelay: '2s',
+  },
+
+  locations: ['./app/jobs/**/*.ts'],
+})

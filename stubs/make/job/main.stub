@@ -1,0 +1,29 @@
+{{#var jobName = string(entity.name).pascalCase().toString()}}
+{{#var jobFileName = string(entity.name).snakeCase().toString()}}
+{{{
+  exports({
+    to: app.makePath('app/jobs', entity.path, jobFileName + '.ts')
+  })
+}}}
+import { Job } from '@adonisjs/queue'
+import type { JobOption } from '@adonisjs/queue/types'
+
+interface {{ jobName }}Payload {
+  // Define your payload type here
+}
+
+export default class {{ jobName }} extends Job<{{ jobName }}Payload> {
+  static options: JobOption = {
+    queue: 'default',
+    maxRetries: 3,
+  }
+
+  async execute() {
+    // Your job logic here
+    console.log('Processing {{ jobName }}', this.payload)
+  }
+
+  async failed(error: Error) {
+    console.error('{{ jobName }} failed:', error.message)
+  }
+}

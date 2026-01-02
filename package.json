@@ -1,0 +1,107 @@
+{
+  "name": "@adonisjs/queue",
+  "description": "Queue system for AdonisJS powered by @boringnode/queue",
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=20.11.1"
+  },
+  "main": "build/index.js",
+  "type": "module",
+  "files": [
+    "build"
+  ],
+  "exports": {
+    ".": "./build/index.js",
+    "./queue_provider": "./build/providers/queue_provider.js",
+    "./commands": "./build/commands/main.js",
+    "./services/main": "./build/services/queue.js",
+    "./types": "./build/src/types/main.js"
+  },
+  "scripts": {
+    "build": "npm run compile",
+    "clean": "del-cli build",
+    "compile": "npm run clean && tsc",
+    "copy:templates": "copyfiles \"stubs/**/*.stub\" build",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "postcompile": "npm run copy:templates",
+    "prepublishOnly": "npm run build",
+    "quick:test": "node --enable-source-maps --import=@poppinss/ts-exec bin/test.ts",
+    "test": "c8 npm run quick:test",
+    "typecheck": "tsc --noEmit",
+    "version": "npm run build"
+  },
+  "dependencies": {
+    "@boringnode/queue": "^0.1.0",
+    "@poppinss/utils": "^6.10.1"
+  },
+  "devDependencies": {
+    "@adonisjs/assembler": "^7.8.2",
+    "@adonisjs/core": "^6.17.2",
+    "@adonisjs/eslint-config": "^2.0.0",
+    "@adonisjs/lucid": "^21.7.0",
+    "@adonisjs/prettier-config": "^1.4.4",
+    "@adonisjs/redis": "^9.2.0",
+    "@adonisjs/tsconfig": "^1.4.0",
+    "@japa/assert": "^4.0.1",
+    "@japa/file-system": "^2.3.2",
+    "@japa/runner": "^4.2.0",
+    "@poppinss/ts-exec": "^1.4.1",
+    "@types/node": "^20.17.22",
+    "c8": "^10.1.3",
+    "copyfiles": "^2.4.1",
+    "del-cli": "^6.0.0",
+    "eslint": "^9.23.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2"
+  },
+  "peerDependencies": {
+    "@adonisjs/assembler": "^7.0.0 || ^8.0.0",
+    "@adonisjs/core": "^6.2.0 || ^7.0.0",
+    "@adonisjs/lucid": "^20.0.0 || ^21.0.0 || ^22.0.0",
+    "@adonisjs/redis": "^8.0.0 || ^9.0.0 || ^10.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@adonisjs/lucid": {
+      "optional": true
+    },
+    "@adonisjs/redis": {
+      "optional": true
+    }
+  },
+  "author": "Romain Lanz <romain.lanz@pm.me>",
+  "license": "MIT",
+  "keywords": [
+    "queue",
+    "jobs",
+    "background-jobs",
+    "adonisjs",
+    "adonis"
+  ],
+  "prettier": "@adonisjs/prettier-config",
+  "publishConfig": {
+    "access": "public",
+    "tag": "latest"
+  },
+  "release-it": {
+    "git": {
+      "commitMessage": "chore(release): ${version}",
+      "tagAnnotation": "v${version}",
+      "tagName": "v${version}"
+    },
+    "github": {
+      "release": true,
+      "releaseName": "v${version}",
+      "web": true
+    }
+  },
+  "c8": {
+    "reporter": [
+      "text",
+      "html"
+    ],
+    "exclude": [
+      "tests/**"
+    ]
+  }
+}
