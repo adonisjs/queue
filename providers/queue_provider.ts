@@ -9,7 +9,7 @@
 
 import '../src/types/extended.js'
 import type { ApplicationService } from '@adonisjs/core/types'
-import type { QueueManagerConfig } from '@boringnode/queue/types'
+import type { QueueConfig } from '../src/types/main.js'
 
 export default class QueueProvider {
   constructor(protected app: ApplicationService) {}
@@ -17,7 +17,7 @@ export default class QueueProvider {
   register() {
     this.app.container.singleton('queue.manager', async () => {
       const { QueueManager } = await import('@boringnode/queue')
-      const config = this.app.config.get<QueueManagerConfig>('queue')
+      const config = this.app.config.get<QueueConfig>('queue')
 
       /**
        * Resolve adapter factories from config providers
@@ -26,9 +26,9 @@ export default class QueueProvider {
 
       for (const [name, adapterConfig] of Object.entries(config.adapters)) {
         if (typeof adapterConfig === 'function') {
-          resolvedAdapters[name] = adapterConfig
+          resolvedAdapters[name] = adapterConfig as () => any
         } else {
-          resolvedAdapters[name] = await (adapterConfig as any).resolver(this.app)
+          resolvedAdapters[name] = await adapterConfig.resolver(this.app)
         }
       }
 
@@ -38,7 +38,7 @@ export default class QueueProvider {
        */
       const jobFactory =
         config.jobFactory ??
-        (async (JobClass) => {
+        (async (JobClass: any) => {
           return this.app.container.make(JobClass)
         })
 

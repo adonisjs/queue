@@ -7,11 +7,11 @@
  * file that was distributed with this source code.
  */
 
-import type { QueueManagerConfig } from '@boringnode/queue/types'
+import type { QueueConfig } from './types/main.js'
 
 /**
  * Define queue configuration with type-safety.
  */
-export function defineConfig(config: QueueManagerConfig): QueueManagerConfig {
+export function defineConfig(config: QueueConfig): QueueConfig {
   return config
 }
