@@ -38,8 +38,8 @@ export default class QueueProvider {
        */
       const jobFactory =
         config.jobFactory ??
-        (async (JobClass, payload, context) => {
-          return this.app.container.make(JobClass, [payload, context])
+        (async (JobClass) => {
+          return this.app.container.make(JobClass)
         })
 
       const logger = await this.app.container.make('logger')

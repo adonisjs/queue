@@ -46,7 +46,7 @@ export default class QueueSchedulerList extends BaseCommand {
 
       table.row([
         schedule.id,
-        schedule.jobName,
+        schedule.name,
         scheduleExpr,
         schedule.status,
         String(schedule.runCount),

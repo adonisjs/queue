@@ -30,7 +30,7 @@ export default class extends BaseSchema {
     this.schema.createTable('queue_schedules', (table) => {
       table.string('id', 255).primary()
       table.string('status', 50).notNullable().defaultTo('active')
-      table.string('job_name', 255).notNullable()
+      table.string('name', 255).notNullable()
       table.text('payload').notNullable()
       table.string('cron_expression', 255).nullable()
       table.bigint('every_ms').unsigned().nullable()
