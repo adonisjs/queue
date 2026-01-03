@@ -13,7 +13,7 @@ export default class extends BaseSchema {
     this.schema.createTable('queue_jobs', (table) => {
       table.string('id', 255).notNullable()
       table.string('queue', 255).notNullable()
-      table.enum('status', ['pending', 'active', 'delayed']).notNullable()
+      table.enu('status', ['pending', 'active', 'delayed']).notNullable()
       table.text('data').notNullable()
       table.bigint('score').unsigned().nullable()
       table.string('worker_id', 255).nullable()
@@ -41,7 +41,7 @@ export default class extends BaseSchema {
       table.integer('run_count').unsigned().notNullable().defaultTo(0)
       table.timestamp('next_run_at').nullable()
       table.timestamp('last_run_at').nullable()
-      table.timestamp('created_at').notNullable()
+      table.timestamp('created_at').notNullable().defaultTo(this.#connection.fn.now())
       table.index(['status', 'next_run_at'])
     })
   }
