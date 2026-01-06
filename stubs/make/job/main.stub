@@ -6,14 +6,14 @@
   })
 }}}
 import { Job } from '@adonisjs/queue'
-import type { JobOption } from '@adonisjs/queue/types'
+import type { JobOptions } from '@adonisjs/queue/types'
 
 interface {{ jobName }}Payload {
   // Define your payload type here
 }
 
 export default class {{ jobName }} extends Job<{{ jobName }}Payload> {
-  static options: JobOption = {
+  static options: JobOptions = {
     queue: 'default',
     maxRetries: 3,
   }
