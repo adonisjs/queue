@@ -61,10 +61,10 @@
     "typescript": "^5.8.2"
   },
   "peerDependencies": {
-    "@adonisjs/assembler": "^7.0.0 || ^8.0.0",
-    "@adonisjs/core": "^6.2.0 || ^7.0.0",
-    "@adonisjs/lucid": "^20.0.0 || ^21.0.0 || ^22.0.0",
-    "@adonisjs/redis": "^8.0.0 || ^9.0.0 || ^10.0.0"
+    "@adonisjs/assembler": "^7.0.0 || ^8.0.0 || ^8.0.0-next",
+    "@adonisjs/core": "^6.2.0 || ^7.0.0 || ^7.0.0-next",
+    "@adonisjs/lucid": "^20.0.0 || ^21.0.0 || ^22.0.0 || ^22.0.0-next",
+    "@adonisjs/redis": "^8.0.0 || ^9.0.0 || ^10.0.0 || ^10.0.0-next"
   },
   "peerDependenciesMeta": {
     "@adonisjs/lucid": {
