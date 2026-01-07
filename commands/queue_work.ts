@@ -8,6 +8,7 @@
  */
 
 import { flags, BaseCommand } from '@adonisjs/core/ace'
+import { resolveAdapters } from '../src/utils.js'
 import type { CommandOptions } from '@adonisjs/core/types/ace'
 import type { QueueConfig } from '../src/types/main.js'
 
@@ -38,19 +39,7 @@ export default class QueueWork extends BaseCommand {
     const router = await this.app.container.make('router')
     router.commit()
 
-    /**
-     * Resolve adapter factories from config providers
-     */
-    const resolvedAdapters: Record<string, () => any> = {}
-
-    for (const [name, adapterConfig] of Object.entries(config.adapters)) {
-      if (typeof adapterConfig === 'function') {
-        resolvedAdapters[name] = adapterConfig as () => any
-      } else {
-        resolvedAdapters[name] = await adapterConfig.resolver(this.app)
-      }
-    }
-
+    const resolvedAdapters = await resolveAdapters(config, this.app)
     const queues = this.queue ? this.queue.split(',').map((q) => q.trim()) : ['default']
 
     this.logger.info(`Starting worker for queues: ${queues.join(', ')}`)

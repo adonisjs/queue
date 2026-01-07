@@ -8,6 +8,7 @@
  */
 
 import '../src/types/extended.js'
+import { resolveAdapters } from '../src/utils.js'
 import type { ApplicationService } from '@adonisjs/core/types'
 import type { QueueConfig } from '../src/types/main.js'
 
@@ -19,18 +20,7 @@ export default class QueueProvider {
       const { QueueManager } = await import('@boringnode/queue')
       const config = this.app.config.get<QueueConfig>('queue')
 
-      /**
-       * Resolve adapter factories from config providers
-       */
-      const resolvedAdapters: Record<string, () => any> = {}
-
-      for (const [name, adapterConfig] of Object.entries(config.adapters)) {
-        if (typeof adapterConfig === 'function') {
-          resolvedAdapters[name] = adapterConfig as () => any
-        } else {
-          resolvedAdapters[name] = await adapterConfig.resolver(this.app)
-        }
-      }
+      const resolvedAdapters = await resolveAdapters(config, this.app)
 
       /**
        * Inject jobFactory if not already defined.
