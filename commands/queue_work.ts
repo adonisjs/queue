@@ -43,10 +43,16 @@ export default class QueueWork extends BaseCommand {
     const queues = this.queue ? this.queue.split(',').map((q) => q.trim()) : ['default']
 
     this.logger.info(`Starting worker for queues: ${queues.join(', ')}`)
+    const jobFactory =
+      config.jobFactory ??
+      (async (JobClass: any) => {
+        return this.app.container.make(JobClass)
+      })
 
     const worker = new Worker({
       ...config,
       adapters: resolvedAdapters,
+      jobFactory,
       ...(this.concurrency && { concurrency: this.concurrency }),
     })
     await worker.start(queues)
