@@ -41,6 +41,10 @@ export default class QueueProvider {
     })
   }
 
+  async boot() {
+    await this.app.container.make('queue.manager')
+  }
+
   async shutdown() {
     const queueManager = await this.app.container.make('queue.manager')
     await queueManager.destroy()
