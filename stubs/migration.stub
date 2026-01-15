@@ -41,7 +41,7 @@ export default class extends BaseSchema {
       table.integer('run_count').unsigned().notNullable().defaultTo(0)
       table.timestamp('next_run_at').nullable()
       table.timestamp('last_run_at').nullable()
-      table.timestamp('created_at').notNullable().defaultTo(this.#connection.fn.now())
+      table.timestamp('created_at').notNullable().defaultTo(this.now())
       table.index(['status', 'next_run_at'])
     })
   }
