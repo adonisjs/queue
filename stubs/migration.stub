@@ -13,15 +13,18 @@ export default class extends BaseSchema {
     this.schema.createTable('queue_jobs', (table) => {
       table.string('id', 255).notNullable()
       table.string('queue', 255).notNullable()
-      table.enu('status', ['pending', 'active', 'delayed']).notNullable()
+      table.enu('status', ['pending', 'active', 'delayed', 'completed', 'failed']).notNullable()
       table.text('data').notNullable()
       table.bigint('score').unsigned().nullable()
       table.string('worker_id', 255).nullable()
       table.bigint('acquired_at').unsigned().nullable()
       table.bigint('execute_at').unsigned().nullable()
+      table.bigint('finished_at').unsigned().nullable()
+      table.text('error').nullable()
       table.primary(['id', 'queue'])
       table.index(['queue', 'status', 'score'])
       table.index(['queue', 'status', 'execute_at'])
+      table.index(['queue', 'status', 'finished_at'])
     })
 
     /**

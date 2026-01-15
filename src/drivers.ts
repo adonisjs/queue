@@ -13,9 +13,7 @@
 import { configProvider } from '@adonisjs/core'
 import type { ConfigProvider } from '@adonisjs/core/types'
 import type { RedisConnections } from '@adonisjs/redis/types'
-import type { Adapter } from '@boringnode/queue/types'
-
-type AdapterFactory = () => Adapter
+import type { AdapterFactory } from '@boringnode/queue/types'
 
 /**
  * Queue drivers that integrate with AdonisJS services.

@@ -8,7 +8,7 @@
  */
 
 import '../src/types/extended.js'
-import { resolveAdapters } from '../src/utils.js'
+import { resolveAdapters, resolveJobFactory } from '../src/utils.js'
 import type { ApplicationService } from '@adonisjs/core/types'
 import type { QueueConfig } from '../src/types/main.js'
 
@@ -26,11 +26,7 @@ export default class QueueProvider {
        * Inject jobFactory if not already defined.
        * This enables automatic dependency injection for job classes.
        */
-      const jobFactory =
-        config.jobFactory ??
-        (async (JobClass: any) => {
-          return this.app.container.make(JobClass)
-        })
+      const jobFactory = resolveJobFactory(config, this.app)
 
       const logger = await this.app.container.make('logger')
 

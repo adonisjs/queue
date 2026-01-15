@@ -8,11 +8,9 @@
  */
 
 import type { ConfigProvider } from '@adonisjs/core/types'
-import type { Adapter, QueueManagerConfig } from '@boringnode/queue/types'
+import type { AdapterFactory, QueueManagerConfig } from '@boringnode/queue/types'
 
 export * from '@boringnode/queue/types'
-
-type AdapterFactory = () => Adapter
 
 /**
  * AdonisJS-specific queue configuration that supports both

@@ -8,7 +8,7 @@
  */
 
 import { flags, BaseCommand } from '@adonisjs/core/ace'
-import { resolveAdapters } from '../src/utils.js'
+import { resolveAdapters, resolveJobFactory } from '../src/utils.js'
 import type { CommandOptions } from '@adonisjs/core/types/ace'
 import type { QueueConfig } from '../src/types/main.js'
 
@@ -43,11 +43,7 @@ export default class QueueWork extends BaseCommand {
     const queues = this.queue ? this.queue.split(',').map((q) => q.trim()) : ['default']
 
     this.logger.info(`Starting worker for queues: ${queues.join(', ')}`)
-    const jobFactory =
-      config.jobFactory ??
-      (async (JobClass: any) => {
-        return this.app.container.make(JobClass)
-      })
+    const jobFactory = resolveJobFactory(config, this.app)
 
     const worker = new Worker({
       ...config,

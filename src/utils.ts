@@ -8,9 +8,7 @@
  */
 
 import type { ApplicationService } from '@adonisjs/core/types'
-import type { QueueConfig } from './types/main.js'
-
-type AdapterFactory = () => any
+import type { AdapterFactory, JobFactory, QueueConfig } from './types/main.js'
 
 /**
  * Resolve adapter factories from config providers.
@@ -36,4 +34,8 @@ export async function resolveAdapters(
   }
 
   return resolvedAdapters
+}
+
+export function resolveJobFactory(config: QueueConfig, app: ApplicationService): JobFactory {
+  return config.jobFactory ?? ((jobClass: any) => app.container.make(jobClass))
 }

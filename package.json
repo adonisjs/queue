@@ -35,30 +35,30 @@
     "version": "npm run build"
   },
   "dependencies": {
-    "@boringnode/queue": "^0.2.0",
+    "@boringnode/queue": "^0.3.1",
     "@poppinss/utils": "^6.10.1"
   },
   "devDependencies": {
     "@adonisjs/assembler": "^7.8.2",
-    "@adonisjs/core": "^6.17.2",
-    "@adonisjs/eslint-config": "^2.0.0",
-    "@adonisjs/lucid": "^21.7.0",
-    "@adonisjs/prettier-config": "^1.4.4",
+    "@adonisjs/core": "^6.19.3",
+    "@adonisjs/eslint-config": "^2.1.2",
+    "@adonisjs/lucid": "^21.8.2",
+    "@adonisjs/prettier-config": "^1.4.5",
     "@adonisjs/redis": "^9.2.0",
-    "@adonisjs/tsconfig": "^1.4.0",
-    "@japa/assert": "^4.0.1",
+    "@adonisjs/tsconfig": "^1.4.1",
+    "@japa/assert": "^4.2.0",
     "@japa/file-system": "^2.3.2",
-    "@japa/runner": "^4.2.0",
+    "@japa/runner": "^4.5.0",
     "@poppinss/ts-exec": "^1.4.1",
     "@release-it/conventional-changelog": "^10.0.4",
-    "@types/node": "^20.17.22",
+    "@types/node": "^20.19.29",
     "c8": "^10.1.3",
     "copyfiles": "^2.4.1",
     "del-cli": "^6.0.0",
-    "eslint": "^9.23.0",
-    "prettier": "^3.5.3",
-    "release-it": "^19.2.2",
-    "typescript": "^5.8.2"
+    "eslint": "^9.39.2",
+    "prettier": "^3.8.0",
+    "release-it": "^19.2.3",
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {
     "@adonisjs/assembler": "^7.0.0 || ^8.0.0 || ^8.0.0-next",
