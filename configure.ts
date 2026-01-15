@@ -35,10 +35,13 @@ export async function configure(command: Configure) {
   const codemods = await command.createCodemods()
 
   /**
-   * Register provider and command
+   * Register provider, command and preload file
    */
   await codemods.updateRcFile((rcFile) => {
-    rcFile.addProvider('@adonisjs/queue/queue_provider').addCommand('@adonisjs/queue/commands')
+    rcFile
+      .addProvider('@adonisjs/queue/queue_provider')
+      .addCommand('@adonisjs/queue/commands')
+      .addPreloadFile('#start/scheduler', ['web'])
   })
 
   /**
@@ -70,6 +73,11 @@ export async function configure(command: Configure) {
    * Publish config file
    */
   await codemods.makeUsingStub(stubsRoot, 'config/queue.stub', { driver })
+
+  /**
+   * Publish scheduler preload file
+   */
+  await codemods.makeUsingStub(stubsRoot, 'start/scheduler.stub', {})
 
   /**
    * Create migration for database driver
