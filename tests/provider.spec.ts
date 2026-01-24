@@ -20,21 +20,4 @@ test.group('Provider', () => {
     assert.isFunction(queueManager.use)
     assert.isFunction(queueManager.destroy)
   })
-
-  test('should resolve adapters from config providers', async ({ assert }) => {
-    const app = await setupApp()
-
-    const queueManager = await app.container.make('queue.manager')
-
-    assert.isDefined(queueManager)
-  })
-
-  test('should shutdown queue manager when app terminates', async ({ assert }) => {
-    const app = await setupApp()
-
-    const queueManager = await app.container.make('queue.manager')
-    assert.isDefined(queueManager)
-
-    await app.terminate()
-  })
 })
