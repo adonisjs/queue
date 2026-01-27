@@ -83,19 +83,12 @@ export async function configure(command: Configure) {
    * Create migration for database driver
    */
   if (driver === 'database') {
-    const shouldPublishMigration = await command.prompt.confirm(
-      'Do you want to publish the migration for the queue tables?',
-      { hint: 'Tables are auto-created by default, but you can manage them manually' }
-    )
-
-    if (shouldPublishMigration) {
-      await codemods.makeUsingStub(stubsRoot, 'migration.stub', {
-        entity: command.app.generators.createEntity('queue'),
-        migration: {
-          folder: 'database/migrations',
-          fileName: `${new Date().getTime()}_create_queue_tables.ts`,
-        },
-      })
-    }
+    await codemods.makeUsingStub(stubsRoot, 'migration.stub', {
+      entity: command.app.generators.createEntity('queue'),
+      migration: {
+        folder: 'database/migrations',
+        fileName: `${new Date().getTime()}_create_queue_tables.ts`,
+      },
+    })
   }
 }

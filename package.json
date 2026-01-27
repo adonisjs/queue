@@ -35,7 +35,7 @@
     "version": "npm run build"
   },
   "dependencies": {
-    "@boringnode/queue": "^0.3.1",
+    "@boringnode/queue": "^0.4.0",
     "@poppinss/utils": "^6.10.1"
   },
   "devDependencies": {

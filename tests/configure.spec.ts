@@ -9,10 +9,13 @@
 
 import { test } from '@japa/runner'
 import { fileURLToPath } from 'node:url'
+import { readdir } from 'node:fs/promises'
+import { join } from 'node:path'
 import { IgnitorFactory } from '@adonisjs/core/factories'
 import Configure from '@adonisjs/core/commands/configure'
 
 const BASE_URL = new URL('./tmp/', import.meta.url)
+const BASE_PATH = fileURLToPath(BASE_URL)
 
 test.group('Configure', (group) => {
   group.tap((t) => t.timeout(10_000))
@@ -25,6 +28,7 @@ test.group('Configure', (group) => {
     await context.fs.createJson('tsconfig.json', {})
     await context.fs.create('start/env.ts', `export default Env.create(new URL('./'), {})`)
     await context.fs.create('adonisrc.ts', `export default defineConfig({})`)
+    await context.fs.create('database/migrations/.gitkeep', '')
   })
 
   test('should register provider and command', async ({ assert }) => {
@@ -159,7 +163,6 @@ test.group('Configure', (group) => {
 
     const ace = await app.container.make('ace')
     ace.prompt.trap('Select the queue driver you plan to use').chooseOption(1) // database
-    ace.prompt.trap('Do you want to publish the migration for the queue tables?').reject()
     ace.ui.switchMode('raw')
 
     const command = await ace.create(Configure, ['../../index.js'])
@@ -167,5 +170,13 @@ test.group('Configure', (group) => {
 
     await assert.fileContains('config/queue.ts', 'drivers.database')
     await assert.fileContains('.env', 'QUEUE_DRIVER=database')
+
+    const migrationDir = join(BASE_PATH, 'database/migrations')
+    const migrationFiles = await readdir(migrationDir)
+    const hasQueueMigration = migrationFiles.some((file) =>
+      file.endsWith('_create_queue_tables.ts')
+    )
+
+    assert.isTrue(hasQueueMigration)
   })
 })
