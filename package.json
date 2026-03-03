@@ -22,7 +22,7 @@
     "build": "npm run compile",
     "clean": "del-cli build",
     "compile": "npm run clean && tsc",
-    "copy:templates": "copyfiles \"stubs/**/*.stub\" build",
+    "copy:templates": "cpy \"stubs/**/*.stub\" build/stubs",
     "index:commands": "adonis-kit index build/commands",
     "format": "prettier --write .",
     "lint": "eslint .",
