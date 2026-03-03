@@ -88,6 +88,14 @@
     "adonisjs",
     "adonis"
   ],
+  "homepage": "https://github.com/adonisjs/queue#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adonisjs/queue.git"
+  },
+  "bugs": {
+    "url": "https://github.com/adonisjs/queue/issues"
+  },
   "prettier": "@adonisjs/prettier-config",
   "publishConfig": {
     "access": "public",
