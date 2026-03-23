@@ -12,6 +12,7 @@
   ],
   "exports": {
     ".": "./build/index.js",
+    "./otel": "./build/src/otel.js",
     "./queue_provider": "./build/providers/queue_provider.js",
     "./commands/*": "./build/commands/*.js",
     "./commands": "./build/commands/main.js",
