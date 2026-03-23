@@ -36,8 +36,7 @@
     "version": "npm run build"
   },
   "dependencies": {
-    "@boringnode/queue": "^0.5.0",
-    "@poppinss/utils": "^7.0.1"
+    "@boringnode/queue": "^0.5.0"
   },
   "devDependencies": {
     "@adonisjs/assembler": "^8.0.0",
