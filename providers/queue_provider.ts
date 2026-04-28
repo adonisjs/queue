@@ -7,10 +7,11 @@
  * file that was distributed with this source code.
  */
 
-import '../src/types/extended.js'
-import { resolveAdapters, resolveJobFactory } from '../src/utils.js'
 import type { ApplicationService } from '@adonisjs/core/types'
-import type { QueueConfig } from '../src/types/main.js'
+
+import '../src/types/extended.js'
+import { initQueue } from '../src/utils.ts'
+import { type QueueConfig } from '../src/types/main.ts'
 
 export default class QueueProvider {
   constructor(protected app: ApplicationService) {}
@@ -18,35 +19,28 @@ export default class QueueProvider {
   register() {
     this.app.container.singleton('queue.manager', async () => {
       const { QueueManager } = await import('@boringnode/queue')
-      const config = this.app.config.get<QueueConfig>('queue')
 
-      const resolvedAdapters = await resolveAdapters(config, this.app)
+      ;(QueueManager as any)['start'] = async () => {
+        const config = this.app.config.get<QueueConfig>('queue')
+        const logger = await this.app.container.make('logger')
+        return initQueue(QueueManager, this.app, config, logger)
+      }
 
-      /**
-       * Inject jobFactory if not already defined.
-       * This enables automatic dependency injection for job classes.
-       */
-      const jobFactory = resolveJobFactory(config, this.app)
-
-      const logger = await this.app.container.make('logger')
-
-      await QueueManager.init({
-        ...config,
-        adapters: resolvedAdapters,
-        jobFactory,
-        logger: config.logger ?? (logger as any),
-      })
-
-      return QueueManager
+      return QueueManager as typeof QueueManager & {
+        start(): Promise<void>
+      }
     })
   }
 
-  async boot() {
-    await this.app.container.make('queue.manager')
+  async start() {
+    if (this.app.getEnvironment() !== 'console') {
+      const QueueManager = await this.app.container.make('queue.manager')
+      await QueueManager.start()
+    }
   }
 
   async shutdown() {
-    const queueManager = await this.app.container.make('queue.manager')
-    await queueManager.destroy()
+    const QueueManager = await this.app.container.make('queue.manager')
+    await QueueManager.destroy()
   }
 }

@@ -8,8 +8,8 @@
  */
 
 import { flags, BaseCommand } from '@adonisjs/core/ace'
-import { resolveAdapters, resolveJobFactory } from '../src/utils.js'
 import type { CommandOptions } from '@adonisjs/core/types/ace'
+import { resolveAdapters, resolveJobFactory } from '../src/utils.js'
 import type { QueueConfig, QueueManagerConfig } from '../src/types/main.js'
 
 export default class QueueWork extends BaseCommand {
@@ -30,8 +30,9 @@ export default class QueueWork extends BaseCommand {
   async run() {
     const { Worker } = await import('@boringnode/queue')
     const config = this.app.config.get<QueueConfig>('queue')
-    const queueManager = await this.app.container.make('queue.manager')
     const logger = await this.app.container.make('logger')
+    const QueueManager = await this.app.container.make('queue.manager')
+    await QueueManager.start()
 
     /**
      * Commit the router to ensure all routes are registered.
@@ -45,12 +46,11 @@ export default class QueueWork extends BaseCommand {
     const queues = this.queue ? this.queue.split(',').map((q) => q.trim()) : ['default']
 
     this.logger.info(`Starting worker for queues: ${queues.join(', ')}`)
-    const jobFactory = resolveJobFactory(config, this.app)
 
     const workerConfig = {
       ...config,
       adapters: resolvedAdapters,
-      jobFactory,
+      jobFactory: resolveJobFactory(config, this.app),
       logger: config.logger ?? logger,
       worker: {
         ...config.worker,
@@ -63,7 +63,7 @@ export default class QueueWork extends BaseCommand {
     try {
       await worker.start(queues)
     } finally {
-      await queueManager.destroy()
+      await QueueManager.destroy()
     }
   }
 }

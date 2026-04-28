@@ -7,7 +7,9 @@
  * file that was distributed with this source code.
  */
 
+import { type Logger } from '@adonisjs/core/logger'
 import type { ApplicationService } from '@adonisjs/core/types'
+import type { QueueManager as QueueManagerSingleton } from '@boringnode/queue'
 import type { AdapterFactory, JobFactory, QueueConfig } from './types/main.js'
 
 /**
@@ -38,4 +40,21 @@ export async function resolveAdapters(
 
 export function resolveJobFactory(config: QueueConfig, app: ApplicationService): JobFactory {
   return config.jobFactory ?? ((jobClass: any) => app.container.make(jobClass))
+}
+
+export async function initQueue(
+  manager: typeof QueueManagerSingleton,
+  app: ApplicationService,
+  config: QueueConfig,
+  logger: Logger
+) {
+  const resolvedAdapters = await resolveAdapters(config, app)
+  const jobFactory = resolveJobFactory(config, app)
+
+  await manager.init({
+    ...config,
+    adapters: resolvedAdapters,
+    jobFactory,
+    logger: config.logger ?? logger,
+  })
 }
