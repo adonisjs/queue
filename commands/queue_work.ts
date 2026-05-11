@@ -44,11 +44,14 @@ export default class QueueWork extends BaseCommand {
     const resolvedAdapters = await resolveAdapters(config, this.app)
     const queues = this.queue ? this.queue.split(',').map((q) => q.trim()) : ['default']
 
+    await queueManager.loadJobs()
+
     this.logger.info(`Starting worker for queues: ${queues.join(', ')}`)
     const jobFactory = resolveJobFactory(config, this.app)
 
     const workerConfig = {
       ...config,
+      autoLoadJobs: false,
       adapters: resolvedAdapters,
       jobFactory,
       logger: config.logger ?? logger,
