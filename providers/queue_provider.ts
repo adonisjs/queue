@@ -29,11 +29,10 @@ export default class QueueProvider {
       const jobFactory = resolveJobFactory(config, this.app)
 
       const logger = await this.app.container.make('logger')
-      const shouldLoadJobs = this.app.getEnvironment() !== 'console'
 
       await QueueManager.init({
         ...config,
-        autoLoadJobs: shouldLoadJobs,
+        autoLoadJobs: false,
         adapters: resolvedAdapters,
         jobFactory,
         logger: config.logger ?? (logger as any),
@@ -45,6 +44,15 @@ export default class QueueProvider {
 
   async boot() {
     await this.app.container.make('queue.manager')
+  }
+
+  async start() {
+    if (this.app.getEnvironment() === 'console') {
+      return
+    }
+
+    const queueManager = await this.app.container.make('queue.manager')
+    await queueManager.loadJobs()
   }
 
   async shutdown() {

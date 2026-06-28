@@ -37,11 +37,18 @@ test.group('Provider', (group) => {
     assert.isFunction(queueManager.destroy)
   })
 
-  test('should load jobs when booting outside of console', async ({ assert, fs }) => {
+  test('should load jobs when starting outside of console', async ({ assert, cleanup, fs }) => {
+    cleanup(() => {
+      delete (globalThis as any).__adonisQueueHashWasUndefined
+    })
+
     await fs.create(
       'app/jobs/provider_web_job.ts',
       `
         import { Job } from '@boringnode/queue'
+        import hash from '@adonisjs/core/services/hash'
+
+        ;(globalThis as any).__adonisQueueHashWasUndefined = hash === undefined
 
         export default class ProviderWebJob extends Job {
           async execute() {}
@@ -49,7 +56,7 @@ test.group('Provider', (group) => {
       `
     )
 
-    await setupApp('web', {
+    const app = await setupApp('web', {
       queue: defineConfig({
         default: 'sync',
         adapters: {
@@ -59,7 +66,13 @@ test.group('Provider', (group) => {
       }),
     })
 
+    assert.isUndefined(Locator.get('ProviderWebJob'))
+    assert.isUndefined((globalThis as any).__adonisQueueHashWasUndefined)
+
+    await app.start(async () => {})
+
     assert.equal(Locator.get('ProviderWebJob')?.name, 'ProviderWebJob')
+    assert.isFalse((globalThis as any).__adonisQueueHashWasUndefined)
   })
 
   test('should not load jobs automatically in console', async ({ assert, fs }) => {
@@ -74,7 +87,7 @@ test.group('Provider', (group) => {
       `
     )
 
-    await setupApp('console', {
+    const app = await setupApp('console', {
       queue: defineConfig({
         default: 'sync',
         adapters: {
@@ -83,6 +96,10 @@ test.group('Provider', (group) => {
         locations: [`${fs.basePath}/app/jobs/provider_console_job.ts`],
       }),
     })
+
+    assert.isUndefined(Locator.get('ProviderConsoleJob'))
+
+    await app.start(async () => {})
 
     assert.isUndefined(Locator.get('ProviderConsoleJob'))
   })
@@ -106,7 +123,7 @@ test.group('Provider', (group) => {
       `
     )
 
-    await setupApp('web', {
+    const app = await setupApp('web', {
       queue: defineConfig({
         default: 'sync',
         adapters: {
@@ -115,6 +132,8 @@ test.group('Provider', (group) => {
         locations: [`${fs.basePath}/app/jobs/provider_sync_job.ts`],
       }),
     })
+
+    await app.start(async () => {})
 
     const { default: ProviderSyncJob } = await import(
       new URL('app/jobs/provider_sync_job.ts', BASE_URL).href
