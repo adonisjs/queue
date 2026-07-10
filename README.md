@@ -6,7 +6,7 @@
 
 ## Introduction
 
-Queue system for AdonisJS applications, powered by [@boringnode/queue](https://github.com/boringnode/queue). Process background jobs with support for multiple drivers (Redis, Database), job retries, scheduling, and more.
+Queue system for AdonisJS applications, powered by [@boringnode/queue](https://github.com/boringnode/queue). Process background jobs with support for Redis, Lucid, and Kysely drivers, job retries, scheduling, and more.
 
 ## Official Documentation
 
@@ -27,12 +27,9 @@ In order to ensure that the AdonisJS community is welcoming to all, please revie
 AdonisJS Queue is open-sourced software licensed under the [MIT license](LICENSE.md).
 
 [gh-workflow-image]: https://img.shields.io/github/actions/workflow/status/adonisjs/queue/checks.yml?style=for-the-badge
-[gh-workflow-url]: https://github.com/adonisjs/queue/actions/workflows/checks.yml "Github action"
-
+[gh-workflow-url]: https://github.com/adonisjs/queue/actions/workflows/checks.yml 'Github action'
 [npm-image]: https://img.shields.io/npm/v/@adonisjs/queue/latest.svg?style=for-the-badge&logo=npm
-[npm-url]: https://www.npmjs.com/package/@adonisjs/queue/v/latest "npm"
-
+[npm-url]: https://www.npmjs.com/package/@adonisjs/queue/v/latest 'npm'
 [typescript-image]: https://img.shields.io/badge/Typescript-294E80.svg?style=for-the-badge&logo=typescript
-
 [license-url]: LICENSE.md
 [license-image]: https://img.shields.io/github/license/adonisjs/queue?style=for-the-badge

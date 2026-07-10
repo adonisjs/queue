@@ -56,6 +56,7 @@
     "cpy-cli": "^7.0.0",
     "del-cli": "^7.0.0",
     "eslint": "^9.39.4",
+    "kysely": "^0.29.3",
     "prettier": "^3.9.1",
     "release-it": "^20.2.1",
     "typescript": "^5.9.3"
@@ -64,13 +65,17 @@
     "@adonisjs/assembler": "^8.0.0",
     "@adonisjs/core": "^7.0.0",
     "@adonisjs/lucid": "^20.0.0 || ^21.0.0 || ^22.0.0",
-    "@adonisjs/redis": "^8.0.0 || ^9.0.0 || ^10.0.0"
+    "@adonisjs/redis": "^8.0.0 || ^9.0.0 || ^10.0.0",
+    "kysely": "^0.29.0"
   },
   "peerDependenciesMeta": {
     "@adonisjs/lucid": {
       "optional": true
     },
     "@adonisjs/redis": {
+      "optional": true
+    },
+    "kysely": {
       "optional": true
     }
   },
