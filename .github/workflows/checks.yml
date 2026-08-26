@@ -5,6 +5,9 @@ on:
   - pull_request
   - workflow_call
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     uses: adonisjs/.github/.github/workflows/lint.yml@main
@@ -13,4 +16,34 @@ jobs:
     uses: adonisjs/.github/.github/workflows/typecheck.yml@main
 
   tests:
-    uses: adonisjs/.github/.github/workflows/test.yml@main
+    runs-on: ubuntu-latest
+    env:
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+    strategy:
+      matrix:
+        node-version: ['lts/krypton', 'latest']
+    services:
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test

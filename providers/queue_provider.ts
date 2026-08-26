@@ -47,7 +47,13 @@ export default class QueueProvider {
   }
 
   async start() {
-    if (this.app.getEnvironment() === 'console') {
+    /**
+     * Nothing dispatches or processes jobs in the console environment or in
+     * an app warming up, since a warmed up app never becomes ready. The
+     * "getMode" method is missing in the older versions of the framework core
+     * without the "warmup" mode.
+     */
+    if (this.app.getEnvironment() === 'console' || this.app.getMode?.() === 'warmup') {
       return
     }
 
