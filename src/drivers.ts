@@ -14,6 +14,8 @@ import { configProvider } from '@adonisjs/core'
 import type { ConfigProvider } from '@adonisjs/core/types'
 import type { RedisConnections } from '@adonisjs/redis/types'
 import type { AdapterFactory } from '@boringnode/queue/types'
+import type { Kysely } from 'kysely'
+import type { KyselyAdapterOptions } from '@boringnode/queue/drivers/kysely_adapter'
 
 /**
  * Queue drivers that integrate with AdonisJS services.
@@ -36,6 +38,14 @@ export const drivers: {
     connectionName?: string
     tableName?: string
   }) => ConfigProvider<AdapterFactory>
+
+  /**
+   * Database driver using an application-owned Kysely connection.
+   */
+  kysely: <DB>(
+    connection: Kysely<DB>,
+    options: KyselyAdapterOptions
+  ) => ConfigProvider<AdapterFactory>
 
   /**
    * Sync driver for testing (executes jobs immediately).
@@ -78,6 +88,13 @@ export const drivers: {
         const connection = db.connection(connectionName)
         return knex(connection.getWriteClient(), config?.tableName)()
       }
+    })
+  },
+
+  kysely(connection, options) {
+    return configProvider.create(async () => {
+      const { kysely: kyselyAdapter } = await import('@boringnode/queue/drivers/kysely_adapter')
+      return kyselyAdapter(connection, options)
     })
   },
 

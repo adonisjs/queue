@@ -20,11 +20,13 @@ export default class QueueProvider {
     this.app.container.singleton('queue.manager', async () => {
       const { QueueManager } = await import('@boringnode/queue')
 
-      ;(QueueManager as any)['start'] = async () => {
-        const config = this.app.config.get<QueueConfig>('queue')
-        const logger = await this.app.container.make('logger')
-        return initQueue(QueueManager, this.app, config, logger)
-      }
+      await QueueManager.init({
+        ...config,
+        autoLoadJobs: false,
+        adapters: resolvedAdapters,
+        jobFactory,
+        logger: config.logger ?? (logger as any),
+      })
 
       return QueueManager as typeof QueueManager & {
         start(): Promise<void>
@@ -37,6 +39,15 @@ export default class QueueProvider {
       const QueueManager = await this.app.container.make('queue.manager')
       await QueueManager.start()
     }
+  }
+
+  async start() {
+    if (this.app.getEnvironment() === 'console') {
+      return
+    }
+
+    const queueManager = await this.app.container.make('queue.manager')
+    await queueManager.loadJobs()
   }
 
   async shutdown() {

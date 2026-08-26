@@ -7,16 +7,90 @@
  * file that was distributed with this source code.
  */
 
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
 import { test } from '@japa/runner'
 import { IgnitorFactory } from '@adonisjs/core/factories'
+import type { Kysely } from 'kysely'
 
 import { defineConfig, drivers } from '../index.js'
 import { resolveAdapters } from '../src/utils.js'
 import type { QueueConfig } from '../src/types/main.js'
 
 const BASE_URL = new URL('./tmp/', import.meta.url)
+const execFileAsync = promisify(execFile)
 
 test.group('resolveAdapters', () => {
+  test('Kysely driver should resolve when Lucid cannot be imported', async ({ assert }) => {
+    const script = `
+      import { registerHooks } from 'node:module'
+
+      registerHooks({
+        resolve(specifier, context, nextResolve) {
+          if (specifier === '@adonisjs/lucid' || specifier.startsWith('@adonisjs/lucid/')) {
+            throw new Error('Lucid must not be resolved')
+          }
+          return nextResolve(specifier, context)
+        },
+      })
+
+      const { drivers } = await import('./src/drivers.ts')
+      const provider = drivers.kysely({}, { dialect: 'sqlite' })
+      const factory = await provider.resolver({})
+      const adapter = factory()
+
+      if (adapter.constructor.name !== 'KyselyAdapter') {
+        throw new Error('Kysely adapter did not resolve')
+      }
+    `
+
+    const result = await execFileAsync(
+      process.execPath,
+      ['--import=@poppinss/ts-exec', '--input-type=module', '--eval', script],
+      { cwd: new URL('..', import.meta.url) }
+    )
+
+    assert.equal(result.stderr, '')
+  })
+
+  test('Kysely driver should resolve without a Lucid binding', async ({ assert }) => {
+    const connection = {} as Kysely<object>
+    const ignitor = new IgnitorFactory()
+      .withCoreProviders()
+      .withCoreConfig()
+      .merge({
+        config: {
+          queue: defineConfig({
+            default: 'database',
+            adapters: {
+              database: drivers.kysely(connection, { dialect: 'sqlite' }),
+            },
+          }),
+        },
+      })
+      .create(BASE_URL, {
+        importer: (filePath) => {
+          if (filePath.startsWith('./') || filePath.startsWith('../')) {
+            return import(new URL(filePath, BASE_URL).href)
+          }
+
+          return import(filePath)
+        },
+      })
+
+    const app = ignitor.createApp('console')
+    await app.init().then(() => app.boot())
+
+    assert.isFalse(app.container.hasBinding('lucid.db'))
+    const config = app.config.get<QueueConfig>('queue')
+    const resolvedAdapters = await resolveAdapters(config, app)
+
+    assert.isFunction(resolvedAdapters.database)
+    assert.equal(resolvedAdapters.database().constructor.name, 'KyselyAdapter')
+
+    await app.terminate()
+  })
+
   test('should resolve config providers to adapter factories', async ({ assert }) => {
     const ignitor = new IgnitorFactory()
       .withCoreProviders()

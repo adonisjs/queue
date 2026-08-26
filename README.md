@@ -6,7 +6,7 @@
 
 ## Introduction
 
-Queue system for AdonisJS applications, powered by [@boringnode/queue](https://github.com/boringnode/queue). Process background jobs with support for multiple drivers (Redis, Database), job retries, scheduling, and more.
+Queue system for AdonisJS applications, powered by [@boringnode/queue](https://github.com/boringnode/queue). Process background jobs with support for Redis, Lucid, and Kysely drivers, job retries, scheduling, and more.
 
 ## Official Documentation
 
