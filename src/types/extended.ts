@@ -11,8 +11,6 @@ import type { QueueManager } from '@boringnode/queue'
 
 declare module '@adonisjs/core/types' {
   export interface ContainerBindings {
-    'queue.manager': typeof QueueManager & {
-      start(): Promise<void>
-    }
+    'queue.manager': typeof QueueManager
   }
 }
