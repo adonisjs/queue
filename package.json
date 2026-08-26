@@ -36,11 +36,11 @@
     "version": "npm run build"
   },
   "dependencies": {
-    "@boringnode/queue": "^0.6.0"
+    "@boringnode/queue": "^0.7.1"
   },
   "devDependencies": {
-    "@adonisjs/assembler": "^8.4.0",
-    "@adonisjs/core": "^7.3.4",
+    "@adonisjs/assembler": "^8.5.0",
+    "@adonisjs/core": "^7.5.0",
     "@adonisjs/eslint-config": "^3.1.0",
     "@adonisjs/lucid": "^22.4.2",
     "@adonisjs/prettier-config": "^1.5.0",
@@ -50,16 +50,16 @@
     "@japa/file-system": "^3.0.0",
     "@japa/runner": "^5.3.0",
     "@poppinss/ts-exec": "^1.4.4",
+    "@release-it/conventional-changelog": "^12.0.0",
+    "@types/node": "~26.3.0",
     "better-sqlite3": "^13.0.3",
-    "@release-it/conventional-changelog": "^11.0.1",
-    "@types/node": "~24.11.2",
-    "c8": "^11.0.0",
+    "c8": "^12.0.0",
     "cpy-cli": "^7.0.0",
     "del-cli": "^7.0.0",
-    "eslint": "^9.39.4",
+    "eslint": "^10.9.1",
     "kysely": "^0.29.3",
-    "prettier": "^3.9.1",
-    "release-it": "^20.2.1",
+    "prettier": "^3.9.6",
+    "release-it": "^21.0.2",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
