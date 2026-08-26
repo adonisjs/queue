@@ -7,11 +7,10 @@
  * file that was distributed with this source code.
  */
 
-import type { ApplicationService } from '@adonisjs/core/types'
-
 import '../src/types/extended.js'
-import { initQueue } from '../src/utils.ts'
-import { type QueueConfig } from '../src/types/main.ts'
+import { resolveAdapters, resolveJobFactory } from '../src/utils.js'
+import type { ApplicationService } from '@adonisjs/core/types'
+import type { QueueConfig } from '../src/types/main.js'
 
 export default class QueueProvider {
   constructor(protected app: ApplicationService) {}
@@ -19,6 +18,17 @@ export default class QueueProvider {
   register() {
     this.app.container.singleton('queue.manager', async () => {
       const { QueueManager } = await import('@boringnode/queue')
+      const config = this.app.config.get<QueueConfig>('queue')
+
+      const resolvedAdapters = await resolveAdapters(config, this.app)
+
+      /**
+       * Inject jobFactory if not already defined.
+       * This enables automatic dependency injection for job classes.
+       */
+      const jobFactory = resolveJobFactory(config, this.app)
+
+      const logger = await this.app.container.make('logger')
 
       await QueueManager.init({
         ...config,
@@ -28,21 +38,22 @@ export default class QueueProvider {
         logger: config.logger ?? (logger as any),
       })
 
-      return QueueManager as typeof QueueManager & {
-        start(): Promise<void>
-      }
+      return QueueManager
     })
   }
 
-  async start() {
-    if (this.app.getEnvironment() !== 'console') {
-      const QueueManager = await this.app.container.make('queue.manager')
-      await QueueManager.start()
-    }
+  async boot() {
+    await this.app.container.make('queue.manager')
   }
 
   async start() {
-    if (this.app.getEnvironment() === 'console') {
+    /**
+     * Nothing dispatches or processes jobs in the console environment or in
+     * an app warming up, since a warmed up app never becomes ready. The
+     * "getMode" method is missing in the older versions of the framework core
+     * without the "warmup" mode.
+     */
+    if (this.app.getEnvironment() === 'console' || this.app.getMode?.() === 'warmup') {
       return
     }
 
@@ -51,7 +62,7 @@ export default class QueueProvider {
   }
 
   async shutdown() {
-    const QueueManager = await this.app.container.make('queue.manager')
-    await QueueManager.destroy()
+    const queueManager = await this.app.container.make('queue.manager')
+    await queueManager.destroy()
   }
 }

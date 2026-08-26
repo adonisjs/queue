@@ -207,4 +207,39 @@ test.group('Provider', (group) => {
 
     assert.deepEqual(order, ['router', 'loadJobs', 'start', 'destroy'])
   })
+
+  test('should not load jobs when warming up the app', async ({ assert, fs }) => {
+    await fs.create(
+      'app/jobs/provider_warmup_job.ts',
+      `
+        import { Job } from '@boringnode/queue'
+
+        export default class ProviderWarmupJob extends Job {
+          async execute() {}
+        }
+      `
+    )
+
+    const app = await setupApp(
+      'web',
+      {
+        queue: defineConfig({
+          default: 'sync',
+          adapters: {
+            sync: sync(),
+          },
+          locations: [`${fs.basePath}/app/jobs/provider_warmup_job.ts`],
+        }),
+      },
+      [],
+      'warmup'
+    )
+
+    assert.isUndefined(Locator.get('ProviderWarmupJob'))
+
+    await app.warmUp()
+
+    assert.equal(app.getState(), 'warmed')
+    assert.isUndefined(Locator.get('ProviderWarmupJob'))
+  })
 })

@@ -9,7 +9,7 @@
 
 import { getActiveTest } from '@japa/runner'
 import { IgnitorFactory } from '@adonisjs/core/factories'
-import type { AppEnvironments } from '@adonisjs/core/types/app'
+import type { AppEnvironments, ApplicationModes } from '@adonisjs/core/types/app'
 
 import { defineConfig as defineRedisConfig } from '@adonisjs/redis'
 import { defineConfig as defineDatabaseConfig } from '@adonisjs/lucid'
@@ -64,7 +64,8 @@ export async function setupApp(
     queue?: ReturnType<typeof defineConfig>
     [key: string]: unknown
   } = {},
-  providers: (() => Promise<{ default: any }>)[] = []
+  providers: (() => Promise<{ default: any }>)[] = [],
+  mode?: ApplicationModes
 ) {
   const ignitor = new IgnitorFactory()
     .withCoreProviders()
@@ -96,6 +97,10 @@ export async function setupApp(
     })
 
   const app = ignitor.createApp(env || 'web')
+  if (mode) {
+    app.setMode(mode)
+  }
+
   await app.init().then(() => app.boot())
 
   getActiveTest()?.cleanup(() => app.terminate())
