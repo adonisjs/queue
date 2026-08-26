@@ -48,8 +48,18 @@ export const drivers: {
       const redis = await app.container.make('redis')
       const { redis: redisAdapter } = await import('@boringnode/queue/drivers/redis_adapter')
 
-      const connection = redis.connection(config?.connectionName)
-      return redisAdapter((connection as any).ioConnection)
+      /**
+       * The connection is acquired from within the factory and not when the
+       * config provider is resolved. The queue manager resolves every adapter
+       * when the app starts, whereas it invokes the factory only when the
+       * adapter is used for the first time. Acquiring the connection eagerly
+       * would open a socket during the app start, even when nothing ever
+       * touches the queue
+       */
+      return () => {
+        const connection = redis.connection(config?.connectionName)
+        return redisAdapter((connection as any).ioConnection)()
+      }
     })
   },
 
@@ -59,9 +69,15 @@ export const drivers: {
       const { knex } = await import('@boringnode/queue/drivers/knex_adapter')
 
       const connectionName = config?.connectionName || db.primaryConnectionName
-      const connection = db.connection(connectionName)
 
-      return knex(connection.getWriteClient(), config?.tableName)
+      /**
+       * Same as the redis driver. The connection is acquired when the adapter
+       * is used for the first time and not when the app starts
+       */
+      return () => {
+        const connection = db.connection(connectionName)
+        return knex(connection.getWriteClient(), config?.tableName)()
+      }
     })
   },
 

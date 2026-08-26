@@ -52,6 +52,7 @@
     "@poppinss/ts-exec": "^1.4.4",
     "@release-it/conventional-changelog": "^10.0.5",
     "@types/node": "~24.11.0",
+    "better-sqlite3": "^13.0.3",
     "c8": "^11.0.0",
     "cpy-cli": "^7.0.0",
     "del-cli": "^7.0.0",
