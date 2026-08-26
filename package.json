@@ -44,7 +44,7 @@
     "@adonisjs/eslint-config": "^3.1.0",
     "@adonisjs/lucid": "^22.4.2",
     "@adonisjs/prettier-config": "^1.5.0",
-    "@adonisjs/redis": "^10.0.0",
+    "@adonisjs/redis": "^10.0.1",
     "@adonisjs/tsconfig": "^2.0.0",
     "@japa/assert": "^4.2.0",
     "@japa/file-system": "^3.0.0",
@@ -57,10 +57,10 @@
     "cpy-cli": "^7.0.0",
     "del-cli": "^7.0.0",
     "eslint": "^10.9.1",
-    "kysely": "^0.29.3",
+    "kysely": "^0.29.5",
     "prettier": "^3.9.6",
     "release-it": "^21.0.2",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "peerDependencies": {
     "@adonisjs/assembler": "^8.0.0",
