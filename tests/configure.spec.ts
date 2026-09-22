@@ -9,7 +9,7 @@
 
 import { test } from '@japa/runner'
 import { fileURLToPath } from 'node:url'
-import { readdir } from 'node:fs/promises'
+import { readdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { IgnitorFactory } from '@adonisjs/core/factories'
 import Configure from '@adonisjs/core/commands/configure'
@@ -25,6 +25,7 @@ test.group('Configure', (group) => {
     context.fs.basePath = fileURLToPath(BASE_URL)
 
     await context.fs.create('.env', '')
+    await context.fs.createJson('package.json', { name: 'tmp-app', type: 'module' })
     await context.fs.createJson('tsconfig.json', {})
     await context.fs.create('start/env.ts', `export default Env.create(new URL('./'), {})`)
     await context.fs.create('adonisrc.ts', `export default defineConfig({})`)
@@ -114,6 +115,74 @@ test.group('Configure', (group) => {
 
     await assert.fileContains('.env', 'QUEUE_DRIVER')
     await assert.fileContains('start/env.ts', 'QUEUE_DRIVER')
+  })
+
+  test('should define the "#jobs/*" import alias', async ({ assert }) => {
+    const ignitor = new IgnitorFactory()
+      .withCoreProviders()
+      .withCoreConfig()
+      .create(BASE_URL, {
+        importer: (filePath) => {
+          if (filePath.startsWith('./') || filePath.startsWith('../')) {
+            return import(new URL(filePath, BASE_URL).href)
+          }
+
+          return import(filePath)
+        },
+      })
+
+    const app = ignitor.createApp('web')
+    await app.init().then(() => app.boot())
+
+    const ace = await app.container.make('ace')
+    ace.prompt.trap('Select the queue driver you plan to use').chooseOption(0)
+    ace.ui.switchMode('raw')
+
+    const command = await ace.create(Configure, ['../../index.js'])
+    await command.exec()
+
+    const packageJson = JSON.parse(await readFile(join(BASE_PATH, 'package.json'), 'utf-8'))
+    assert.deepEqual(packageJson.imports, { '#jobs/*': './app/jobs/*.js' })
+  })
+
+  test('should preserve existing imports when defining the "#jobs/*" alias', async ({
+    assert,
+    fs,
+  }) => {
+    await fs.createJson('package.json', {
+      name: 'tmp-app',
+      type: 'module',
+      imports: { '#controllers/*': './app/controllers/*.js' },
+    })
+
+    const ignitor = new IgnitorFactory()
+      .withCoreProviders()
+      .withCoreConfig()
+      .create(BASE_URL, {
+        importer: (filePath) => {
+          if (filePath.startsWith('./') || filePath.startsWith('../')) {
+            return import(new URL(filePath, BASE_URL).href)
+          }
+
+          return import(filePath)
+        },
+      })
+
+    const app = ignitor.createApp('web')
+    await app.init().then(() => app.boot())
+
+    const ace = await app.container.make('ace')
+    ace.prompt.trap('Select the queue driver you plan to use').chooseOption(0)
+    ace.ui.switchMode('raw')
+
+    const command = await ace.create(Configure, ['../../index.js'])
+    await command.exec()
+
+    const packageJson = JSON.parse(await readFile(join(BASE_PATH, 'package.json'), 'utf-8'))
+    assert.deepEqual(packageJson.imports, {
+      '#controllers/*': './app/controllers/*.js',
+      '#jobs/*': './app/jobs/*.js',
+    })
   })
 
   test('should create redis config when redis driver selected', async ({ assert }) => {

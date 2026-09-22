@@ -7,6 +7,9 @@
  * file that was distributed with this source code.
  */
 
+import { existsSync } from 'node:fs'
+import { readFile, writeFile } from 'node:fs/promises'
+
 import { stubsRoot } from './stubs/main.js'
 import type Configure from '@adonisjs/core/commands/configure'
 
@@ -20,6 +23,34 @@ const DRIVERS_INFO: Record<
 > = {
   redis: {},
   database: {},
+}
+
+type PackageJson = Record<string, unknown> & {
+  imports?: Record<string, string>
+}
+
+/**
+ * Defines the "#jobs/*" subpath import inside the project package.json
+ * file. Job classes are referenced using this alias (for example inside
+ * the scheduler preload file), so we make sure it is always defined.
+ */
+async function defineJobsImport(packageJsonPath: string) {
+  /**
+   * Do not create a package.json from scratch. Only update the
+   * one that already exists.
+   */
+  if (!existsSync(packageJsonPath)) {
+    return
+  }
+
+  const packageJson: PackageJson = JSON.parse(await readFile(packageJsonPath, 'utf-8'))
+
+  packageJson.imports = {
+    ...packageJson.imports,
+    '#jobs/*': './app/jobs/*.js',
+  }
+
+  await writeFile(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`)
 }
 
 /**
@@ -43,6 +74,11 @@ export async function configure(command: Configure) {
       .addCommand('@adonisjs/queue/commands')
       .addPreloadFile('#start/scheduler', ['web'])
   })
+
+  /**
+   * Define the "#jobs/*" import alias used to reference job classes
+   */
+  await defineJobsImport(command.app.makePath('package.json'))
 
   /**
    * Define environment variables
