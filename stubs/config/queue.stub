@@ -14,7 +14,7 @@ export default defineConfig({
     }),
 {{#elif driver === 'database'}}
     database: drivers.database({
-      connectionName: 'primary',
+      connectionName: '{{ databaseConnection }}',
     }),
 {{/if}}
     sync: drivers.sync(),

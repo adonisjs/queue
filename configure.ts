@@ -23,6 +23,15 @@ const DRIVERS_INFO: Record<
 }
 
 /**
+ * Returns the name of the connection configured as the default one inside
+ * the application "config/database.ts" file
+ */
+function getDatabaseConnectionName(command: Configure) {
+  const databaseConfig = command.app.config.get<{ connection?: string }>('database', {})
+  return databaseConfig.connection
+}
+
+/**
  * Configures the package
  */
 export async function configure(command: Configure) {
@@ -70,9 +79,17 @@ export async function configure(command: Configure) {
   }
 
   /**
+   * Define the database connection to use. We read the default connection
+   * from the application database config file, so that the queue and the
+   * rest of the application share the same connection.
+   */
+  const databaseConnection =
+    driver === 'database' ? (getDatabaseConnectionName(command) ?? 'sqlite') : undefined
+
+  /**
    * Publish config file
    */
-  await codemods.makeUsingStub(stubsRoot, 'config/queue.stub', { driver })
+  await codemods.makeUsingStub(stubsRoot, 'config/queue.stub', { driver, databaseConnection })
 
   /**
    * Publish scheduler preload file

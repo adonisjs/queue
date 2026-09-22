@@ -179,4 +179,39 @@ test.group('Configure', (group) => {
 
     assert.isTrue(hasQueueMigration)
   })
+
+  test('should use the database connection from the app config', async ({ assert }) => {
+    const ignitor = new IgnitorFactory()
+      .withCoreProviders()
+      .withCoreConfig()
+      .merge({
+        config: {
+          database: {
+            connection: 'postgres',
+            connections: {},
+          },
+        },
+      })
+      .create(BASE_URL, {
+        importer: (filePath) => {
+          if (filePath.startsWith('./') || filePath.startsWith('../')) {
+            return import(new URL(filePath, BASE_URL).href)
+          }
+
+          return import(filePath)
+        },
+      })
+
+    const app = ignitor.createApp('web')
+    await app.init().then(() => app.boot())
+
+    const ace = await app.container.make('ace')
+    ace.prompt.trap('Select the queue driver you plan to use').chooseOption(1) // database
+    ace.ui.switchMode('raw')
+
+    const command = await ace.create(Configure, ['../../index.js'])
+    await command.exec()
+
+    await assert.fileContains('config/queue.ts', `connectionName: 'postgres'`)
+  })
 })
