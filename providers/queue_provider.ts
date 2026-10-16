@@ -43,12 +43,26 @@ export default class QueueProvider {
     })
   }
 
+  /**
+   * A warmed up app never gets started and its providers are never shut
+   * down. Therefore, we must not resolve the queue manager (and open the
+   * adapter connections) in this mode. The "getMode" method is missing in
+   * the older versions of the framework core without the "warmup" mode.
+   */
+  #isWarmingUp() {
+    return this.app.getMode?.() === 'warmup'
+  }
+
   async boot() {
+    if (this.#isWarmingUp()) {
+      return
+    }
+
     await this.app.container.make('queue.manager')
   }
 
   async start() {
-    if (this.app.getEnvironment() === 'console') {
+    if (this.app.getEnvironment() === 'console' || this.#isWarmingUp()) {
       return
     }
 

@@ -9,7 +9,7 @@
 
 import { getActiveTest } from '@japa/runner'
 import { IgnitorFactory } from '@adonisjs/core/factories'
-import type { AppEnvironments } from '@adonisjs/core/types/app'
+import type { AppEnvironments, ApplicationModes } from '@adonisjs/core/types/app'
 import type { DatabaseConfig } from '@adonisjs/lucid/types/database'
 
 import { defineConfig, drivers } from '../index.js'
@@ -21,7 +21,8 @@ export async function setupApp(
   config: {
     queue?: ReturnType<typeof defineConfig>
     database?: DatabaseConfig
-  } = {}
+  } = {},
+  mode?: ApplicationModes
 ) {
   const ignitor = new IgnitorFactory()
     .withCoreProviders()
@@ -56,6 +57,10 @@ export async function setupApp(
     })
 
   const app = ignitor.createApp(env || 'web')
+  if (mode) {
+    app.setMode(mode)
+  }
+
   await app.init().then(() => app.boot())
 
   getActiveTest()?.cleanup(() => app.terminate())

@@ -9,6 +9,7 @@
 
 import { test } from '@japa/runner'
 import { fileURLToPath } from 'node:url'
+import { configProvider } from '@adonisjs/core'
 import { Locator } from '@boringnode/queue'
 import { sync } from '@boringnode/queue/drivers/sync_adapter'
 
@@ -271,5 +272,65 @@ test.group('Provider', (group) => {
     } finally {
       Worker.prototype.start = originalStart
     }
+  })
+  test('should not resolve the queue manager when warming up the app', async ({ assert, fs }) => {
+    await fs.create(
+      'app/jobs/provider_warmup_job.ts',
+      `
+        import { Job } from '@boringnode/queue'
+
+        export default class ProviderWarmupJob extends Job {
+          async execute() {}
+        }
+      `
+    )
+
+    /**
+     * Adapters like redis acquire their connection when resolved. Resolving
+     * them while warming up the app leaves open sockets behind, since the
+     * providers of a warmed up app are never shut down
+     */
+    let resolvedAdapters = 0
+    const app = await setupApp(
+      'web',
+      {
+        queue: defineConfig({
+          default: 'sync',
+          adapters: {
+            sync: configProvider.create(async () => {
+              resolvedAdapters++
+              return sync()
+            }),
+          },
+          locations: [`${fs.basePath}/app/jobs/provider_warmup_job.ts`],
+        }),
+      },
+      'warmup'
+    )
+
+    assert.equal(resolvedAdapters, 0)
+
+    await app.warmUp()
+
+    assert.equal(app.getState(), 'warmed')
+    assert.equal(resolvedAdapters, 0)
+    assert.isUndefined(Locator.get('ProviderWarmupJob'))
+  })
+
+  test('should resolve the queue manager when booting the app', async ({ assert }) => {
+    let resolvedAdapters = 0
+    await setupApp('web', {
+      queue: defineConfig({
+        default: 'sync',
+        adapters: {
+          sync: configProvider.create(async () => {
+            resolvedAdapters++
+            return sync()
+          }),
+        },
+      }),
+    })
+
+    assert.equal(resolvedAdapters, 1)
   })
 })
