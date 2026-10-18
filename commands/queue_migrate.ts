@@ -66,14 +66,6 @@ export default class QueueMigrate extends BaseCommand {
         const adapter = queueManager.use(name)
         const migration = getStorageMigration(factories[name])
 
-        if (!migration && (await this.#isSqlAdapter(adapter))) {
-          throw new Error(
-            'Cannot upgrade the tables of an adapter created without drivers.database() or ' +
-              'drivers.kysely(). Run migrateScheduleDates(), migrateTextColumns() and ' +
-              'addDedupColumns() of KnexQueueSchemaService or KyselyQueueSchemaService on its tables.'
-          )
-        }
-
         const changes = migration
           ? await migration({ timezone: this.timezone, databaseTimeZone: this.databaseTimezone })
           : []
@@ -87,6 +79,20 @@ export default class QueueMigrate extends BaseCommand {
         for (const change of changes) {
           this.logger.info(`${name}: ${change}`)
         }
+
+        /**
+         * Only the database and kysely drivers know the connection of their
+         * adapter. migrate() above still fails on schedule dates to convert.
+         */
+        if (!migration && (await this.#isSqlAdapter(adapter))) {
+          this.logger.warning(
+            `${name}: cannot upgrade the tables of an adapter created without drivers.database() ` +
+              'or drivers.kysely(). If they were created before 0.9, run addDedupColumns() and ' +
+              'migrateTextColumns() of KnexQueueSchemaService or KyselyQueueSchemaService on them.'
+          )
+          continue
+        }
+
         this.logger.success(`${name}: up to date`)
       } catch (error) {
         this.logger.error(`${name}: ${error.message}`)

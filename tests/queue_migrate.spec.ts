@@ -109,7 +109,7 @@ test.group('queue:migrate', (group) => {
     assert.notInclude(names, 'queue_jobs_queue_dedup_id_index')
   })
 
-  test('refuses to report SQL tables it cannot upgrade as up to date', async ({ fs }) => {
+  test('warns about SQL tables it cannot upgrade', async ({ fs }) => {
     await fs.create('db.sqlite3', '')
 
     const app = await setupApp('console', {
@@ -131,6 +131,7 @@ test.group('queue:migrate', (group) => {
     const command = await ace.create(QueueMigrate, [])
     await command.exec()
 
-    command.assertFailed()
+    command.assertSucceeded()
+    command.assertLogMatches(/database: cannot upgrade the tables/)
   })
 })
