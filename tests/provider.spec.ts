@@ -273,6 +273,7 @@ test.group('Provider', (group) => {
       Worker.prototype.start = originalStart
     }
   })
+
   test('should not resolve the queue manager when warming up the app', async ({ assert, fs }) => {
     await fs.create(
       'app/jobs/provider_warmup_job.ts',
