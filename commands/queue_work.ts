@@ -45,12 +45,19 @@ export default class QueueWork extends BaseCommand {
       return this.terminate()
     }
 
+    const config = this.app.config.get<QueueConfig>('queue')
+
+    if (this.adapter && !(this.adapter in config.adapters)) {
+      this.logger.error(`Adapter "${this.adapter}" is not configured`)
+      this.exitCode = 1
+      return this.terminate()
+    }
+
     if (this.hmr) {
       return this.#runWithHmr()
     }
 
     const { Worker } = await import('@boringnode/queue')
-    const config = this.app.config.get<QueueConfig>('queue')
     const queueManager = await this.app.container.make('queue.manager')
     const logger = await this.app.container.make('logger')
 
@@ -88,14 +95,6 @@ export default class QueueWork extends BaseCommand {
       },
     } satisfies QueueManagerConfig
 
-    const worker = new Worker(workerConfig)
-
-    /**
-     * The app terminates on SIGTERM (see bin/console.ts). Stop the worker
-     * first, or the provider would destroy the QueueManager under it.
-     */
-    this.app.terminating(() => worker.stop())
-
     /**
      * `start()` resolves once the worker stopped (SIGTERM, SIGINT) and every
      * running job is finalized. Terminating the app then destroys the
@@ -103,7 +102,22 @@ export default class QueueWork extends BaseCommand {
      * the process can exit.
      */
     try {
+      const worker = new Worker(workerConfig)
+
+      /**
+       * The app terminates on SIGTERM (see bin/console.ts). Stop the worker
+       * first, or the provider would destroy the QueueManager under it.
+       */
+      this.app.terminating(() => worker.stop())
+
       await worker.start(queues)
+    } catch (error) {
+      /**
+       * Ace sets the exit code of a command that stays alive when the
+       * app terminates, which happens before it handles this error.
+       */
+      this.exitCode = 1
+      throw error
     } finally {
       await this.terminate()
     }
