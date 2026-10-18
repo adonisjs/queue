@@ -11,7 +11,7 @@ import { flags, BaseCommand } from '@adonisjs/core/ace'
 import { resolveAdapters } from '../src/utils.js'
 import { getStorageMigration } from '../src/storage_migration.js'
 import type { CommandOptions } from '@adonisjs/core/types/ace'
-import type { QueueConfig } from '../src/types/main.js'
+import type { Adapter, QueueConfig } from '../src/types/main.js'
 
 /**
  * Upgrades the storage of each adapter to the format of the installed
@@ -63,7 +63,17 @@ export default class QueueMigrate extends BaseCommand {
 
     for (const name of names) {
       try {
+        const adapter = queueManager.use(name)
         const migration = getStorageMigration(factories[name])
+
+        if (!migration && (await this.#isSqlAdapter(adapter))) {
+          throw new Error(
+            'Cannot upgrade the tables of an adapter created without drivers.database() or ' +
+              'drivers.kysely(). Run migrateScheduleDates(), migrateTextColumns() and ' +
+              'addDedupColumns() of KnexQueueSchemaService or KyselyQueueSchemaService on its tables.'
+          )
+        }
+
         const changes = migration
           ? await migration({ timezone: this.timezone, databaseTimeZone: this.databaseTimezone })
           : []
@@ -72,7 +82,7 @@ export default class QueueMigrate extends BaseCommand {
          * Moves the schedules of Redis to their 0.8 keys. On SQL adapters,
          * it checks the schedule dates are migrated.
          */
-        await queueManager.use(name).migrate()
+        await adapter.migrate()
 
         for (const change of changes) {
           this.logger.info(`${name}: ${change}`)
@@ -83,5 +93,21 @@ export default class QueueMigrate extends BaseCommand {
         this.exitCode = 1
       }
     }
+  }
+
+  /**
+   * Whether the adapter stores jobs in SQL tables. The SQL modules load
+   * only when knex or kysely is installed.
+   */
+  async #isSqlAdapter(adapter: Adapter) {
+    const [knex, kysely] = await Promise.allSettled([
+      import('@boringnode/queue/drivers/knex_adapter'),
+      import('@boringnode/queue/drivers/kysely_adapter'),
+    ])
+
+    return (
+      (knex.status === 'fulfilled' && adapter instanceof knex.value.KnexAdapter) ||
+      (kysely.status === 'fulfilled' && adapter instanceof kysely.value.KyselyAdapter)
+    )
   }
 }

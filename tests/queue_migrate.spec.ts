@@ -10,6 +10,7 @@
 import { test } from '@japa/runner'
 import { fileURLToPath } from 'node:url'
 import { defineConfig as defineDatabaseConfig } from '@adonisjs/lucid'
+import { knex } from '@boringnode/queue/drivers/knex_adapter'
 
 import { setupApp } from './helpers.js'
 import QueueMigrate from '../commands/queue_migrate.js'
@@ -106,5 +107,30 @@ test.group('queue:migrate', (group) => {
     const names = indexes.map((index: { name: string }) => index.name)
     assert.include(names, 'queue_jobs_dedup_uidx')
     assert.notInclude(names, 'queue_jobs_queue_dedup_id_index')
+  })
+
+  test('refuses to report SQL tables it cannot upgrade as up to date', async ({ fs }) => {
+    await fs.create('db.sqlite3', '')
+
+    const app = await setupApp('console', {
+      queue: defineConfig({
+        default: 'database',
+        adapters: {
+          database: knex({
+            client: 'better-sqlite3',
+            connection: { filename: `${fs.basePath}/db.sqlite3` },
+            useNullAsDefault: true,
+          }),
+        },
+      }),
+    })
+
+    const ace = await app.container.make('ace')
+    ace.ui.switchMode('raw')
+
+    const command = await ace.create(QueueMigrate, [])
+    await command.exec()
+
+    command.assertFailed()
   })
 })
