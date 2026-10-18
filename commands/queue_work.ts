@@ -42,7 +42,7 @@ export default class QueueWork extends BaseCommand {
     if (this.queue && this.allQueues) {
       this.logger.error('Cannot use --queue and --all-queues flags together. Choose one of them')
       this.exitCode = 1
-      return
+      return this.terminate()
     }
 
     if (this.hmr) {
