@@ -45,6 +45,15 @@ export default class QueueWork extends BaseCommand {
       return this.terminate()
     }
 
+    if (
+      this.concurrency !== undefined &&
+      (!Number.isInteger(this.concurrency) || this.concurrency < 1)
+    ) {
+      this.logger.error('--concurrency must be a positive integer')
+      this.exitCode = 1
+      return this.terminate()
+    }
+
     const config = this.app.config.get<QueueConfig>('queue')
 
     if (this.adapter && !(this.adapter in config.adapters)) {
