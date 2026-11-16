@@ -66,51 +66,52 @@ export default class QueueWork extends BaseCommand {
       return this.#runWithHmr()
     }
 
-    const { Worker } = await import('@boringnode/queue')
-    const queueManager = await this.app.container.make('queue.manager')
-    const logger = await this.app.container.make('logger')
-
     /**
-     * Commit the router to ensure all routes are registered.
-     * This is required when jobs dispatch HTTP requests or
-     * use URL generation.
-     */
-    const router = await this.app.container.make('router')
-    router.commit()
-
-    const resolvedAdapters = await resolveAdapters(config, this.app)
-    const queues = this.queue
-      ? this.queue.split(',').map((q) => q.trim())
-      : this.allQueues
-        ? [...new Set(['default', ...Object.keys(config.queues ?? {})])]
-        : ['default']
-
-    await queueManager.loadJobs()
-
-    this.logger.info(`Starting worker for queues: ${queues.join(', ')}`)
-    const jobFactory = resolveJobFactory(config, this.app)
-
-    const workerConfig = {
-      ...config,
-      autoLoadJobs: false,
-      adapters: resolvedAdapters,
-      jobFactory,
-      hotReload: resolveHotReload(config),
-      logger: config.logger ?? logger,
-      worker: {
-        ...config.worker,
-        ...(this.concurrency !== undefined ? { concurrency: this.concurrency } : {}),
-        ...(this.adapter !== undefined ? { adapter: this.adapter } : {}),
-      },
-    } satisfies QueueManagerConfig
-
-    /**
-     * `start()` resolves once the worker stopped (SIGTERM, SIGINT) and every
-     * running job is finalized. Terminating the app then destroys the
-     * QueueManager and closes the connections it used (Redis, Lucid), so
-     * the process can exit.
+     * The command stays alive, so it terminates the app itself. Ace sets
+     * the exit code of a command that stays alive when the app terminates,
+     * which happens before it handles the error. Each step that can throw
+     * is in the same `try`, or a failure would leave the connections that
+     * the adapters opened running, and the process would not exit.
      */
     try {
+      const { Worker } = await import('@boringnode/queue')
+      const queueManager = await this.app.container.make('queue.manager')
+      const logger = await this.app.container.make('logger')
+
+      /**
+       * Commit the router to ensure all routes are registered.
+       * This is required when jobs dispatch HTTP requests or
+       * use URL generation.
+       */
+      const router = await this.app.container.make('router')
+      router.commit()
+
+      const resolvedAdapters = await resolveAdapters(config, this.app)
+      const queues = this.queue
+        ? this.queue.split(',').map((q) => q.trim())
+        : this.allQueues
+          ? [...new Set(['default', ...Object.keys(config.queues ?? {})])]
+          : ['default']
+
+      await queueManager.loadJobs()
+
+      this.logger.info(`Starting worker for queues: ${queues.join(', ')}`)
+      const jobFactory = resolveJobFactory(config, this.app)
+
+      const workerConfig = {
+        ...config,
+        autoLoadJobs: false,
+        adapters: resolvedAdapters,
+        jobFactory,
+        hotReload: resolveHotReload(config),
+        logger: config.logger ?? logger,
+        worker: {
+          ...config.worker,
+          ...(this.concurrency !== undefined ? { concurrency: this.concurrency } : {}),
+          ...(this.adapter !== undefined ? { adapter: this.adapter } : {}),
+        },
+      } satisfies QueueManagerConfig
+
       const worker = new Worker(workerConfig)
 
       /**
@@ -119,12 +120,14 @@ export default class QueueWork extends BaseCommand {
        */
       this.app.terminating(() => worker.stop())
 
+      /**
+       * `start()` resolves once the worker stopped (SIGTERM, SIGINT) and every
+       * running job is finalized. Terminating the app then destroys the
+       * QueueManager and closes the connections it used (Redis, Lucid), so
+       * the process can exit.
+       */
       await worker.start(queues)
     } catch (error) {
-      /**
-       * Ace sets the exit code of a command that stays alive when the
-       * app terminates, which happens before it handles this error.
-       */
       this.exitCode = 1
       throw error
     } finally {
