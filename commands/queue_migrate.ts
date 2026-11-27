@@ -94,7 +94,7 @@ export default class QueueMigrate extends BaseCommand {
         }
 
         this.logger.success(`${name}: up to date`)
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error(`${name}: ${error.message}`)
         this.exitCode = 1
       }
